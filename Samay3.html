@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Samay – Intelligent College Timetable</title>
+<!-- Supabase Official JS SDK CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#ffffff;--fg:#1b1533;--card:#ffffff;--mut:#6b6488;--bd:#e4def7;--nav:#ffffffd9;--in:#f6f4fd;--ac:#6d3cf0;--ac2:#a47bff;--ok:#1f9d6b;--bad:#d64545;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light;
+--glass:linear-gradient(135deg,rgba(255,255,255,.9),rgba(255,255,255,.6));--glass-bd:rgba(255,255,255,.9);--glass-sh:0 10px 34px rgba(109,60,240,.13),inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(109,60,240,.08)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:var(--fg);font-family:"Space Grotesk","Segoe UI",system-ui,sans-serif;line-height:1.5}
+
+.orbs{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.orbs i{position:absolute;border-radius:50%;filter:blur(70px);opacity:.38;animation:drift 22s ease-in-out infinite}
+.orbs i:nth-child(1){width:46vmax;height:46vmax;left:-14vmax;top:-12vmax;background:#c9b6ff}
+.orbs i:nth-child(2){width:38vmax;height:38vmax;right:-12vmax;top:22vh;background:#a8e6cf;animation-delay:-8s;animation-duration:26s}
+.orbs i:nth-child(3){width:34vmax;height:34vmax;left:28vw;bottom:-18vmax;background:#ffc9d9;animation-delay:-14s;animation-duration:30s}
+@keyframes drift{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(6vmax,4vmax) scale(1.12)}66%{transform:translate(-4vmax,7vmax) scale(.92)}}
+
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;display:flex;align-items:center;gap:14px;padding:10px 18px;background:linear-gradient(180deg,rgba(255,255,255,.82),rgba(255,255,255,.55));backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border-bottom:1px solid rgba(255,255,255,.9);box-shadow:0 6px 24px rgba(109,60,240,.08)}
+.logo{font-weight:700;font-size:20px;white-space:nowrap}.logo span{color:var(--ac)}
+nav{position:relative;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;flex:1;padding:4px;border-radius:999px;background:linear-gradient(135deg,rgba(255,255,255,.7),rgba(237,232,255,.45));border:1px solid rgba(255,255,255,.9)}
+nav::-webkit-scrollbar{display:none}
+nav button{position:relative;z-index:1;background:none;border:0;color:var(--mut);font:inherit;font-size:14px;padding:8px 14px;border-radius:999px;cursor:pointer;white-space:nowrap}
+nav button.on{color:#fff}
+#pill{position:absolute;top:4px;bottom:4px;left:0;width:0;border-radius:999px;background:linear-gradient(135deg,#5b2de0,#a47bff);box-shadow:0 6px 20px rgba(124,77,255,.45);transition:left .4s cubic-bezier(.3,1.4,.5,1),width .4s cubic-bezier(.3,1.4,.5,1)}
+
+main{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:26px 18px 60px}
+.sec{display:none}
+.sec.on{display:block;animation:inR .4s ease-out}
+.sec.on.l{animation-name:inL}
+@keyframes inR{from{opacity:0;transform:translateX(50px)}to{opacity:1;transform:none}}
+@keyframes inL{from{opacity:0;transform:translateX(-50px)}to{opacity:1;transform:none}}
+h1{font-size:clamp(38px,8vw,72px);line-height:1;margin:.1em 0 .2em;letter-spacing:-2px;color:var(--ac)}
+h2{font-size:30px;text-align:center;margin:8px 0 4px}h3{margin:0 0 12px}
+.sub{text-align:center;color:var(--mut);margin:0 0 22px}
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:30px;align-items:center;min-height:300px}
+.hero p{color:var(--mut);max-width:46ch;font-size:17px}
+
+.btn{position:relative;background:linear-gradient(135deg,#5b2de0,#8b5cf6);color:#fff;border:0;border-radius:12px;padding:12px 22px;font:inherit;font-weight:600;cursor:pointer;box-shadow:0 8px 24px #6d3cf044;transition:transform .2s,box-shadow .2s;z-index:2}
+.btn:hover{transform:translateY(-2px);box-shadow:0 12px 30px #6d3cf077}
+.btn.g{background:linear-gradient(135deg,#1c7c6a,#2fa866)}
+.btn.o{background:#fff;color:var(--fg);border:1px solid rgba(109,60,240,.25)}
+
+.card{background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--glass-bd);border-radius:22px;padding:22px;box-shadow:var(--glass-sh)}
+.stack{position:relative;height:300px}
+.stack div{position:absolute;border-radius:22px;padding:16px;color:#fff;font-weight:600;border:1px solid rgba(255,255,255,.55);box-shadow:0 20px 44px rgba(60,30,140,.22)}
+.stack div:nth-child(1){top:0;right:0;width:68%;background:linear-gradient(135deg,rgba(91,45,224,.92),rgba(139,92,246,.82))}
+.stack div:nth-child(2){top:90px;left:0;width:64%;background:linear-gradient(135deg,rgba(28,124,106,.92),rgba(47,168,102,.82))}
+.stack div:nth-child(3){top:185px;right:6%;width:62%;background:linear-gradient(135deg,rgba(180,51,122,.92),rgba(232,104,61,.82))}
+.stack small{display:block;font-weight:400;opacity:.9}
+
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:30px}
+.step{border-radius:22px;padding:22px;color:#fff;background:linear-gradient(150deg,#5427d8,#8b5cf6);cursor:pointer;border:0;text-align:left;font:inherit;min-height:130px;box-shadow:0 14px 32px rgba(84,39,216,.25)}
+.step b{display:block;font-size:18px;margin-bottom:6px}.step span{opacity:.88;font-size:14px}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+label{display:block;font-weight:600;font-size:14px;margin:0 0 14px}
+input:not([type=checkbox]),select{display:block;width:100%;margin-top:6px;padding:11px 12px;border-radius:12px;border:1px solid rgba(109,60,240,.2);background:#fff;color:var(--fg);font:inherit}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--ac2);outline-offset:2px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.chip{display:inline-flex!important;align-items:center;gap:6px;margin:0!important;padding:6px 12px;border:1px solid rgba(109,60,240,.18);border-radius:999px;font-weight:500!important;cursor:pointer;background:#fff}
+.chip:has(input:checked){background:linear-gradient(135deg,#6d3cf0,#a47bff);color:#fff}
+.chip input{accent-color:#6d3cf0}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(109,60,240,.1)}
+.row small{color:var(--mut);display:block}
+.x{background:none;border:0;color:var(--bad);cursor:pointer;font-size:16px}
+.mut{color:var(--mut)}
+.bar{height:8px;border-radius:9px;background:rgba(109,60,240,.08);overflow:hidden;margin:4px 0 12px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#6d3cf0,#a47bff);width:0;border-radius:9px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:20px 0}
+.stat b{display:block;font-size:30px;line-height:1.1}.stat span{color:var(--mut);font-size:13px}
+.tt{margin-top:18px}.sc{overflow-x:auto}
+table{border-collapse:separate;border-spacing:4px;width:100%;min-width:640px;font-size:13px}
+th{color:var(--mut);font-weight:600;padding:6px;white-space:nowrap}
+td{background:rgba(246,244,253,.7);border-radius:10px;height:56px;min-width:100px;padding:0;vertical-align:top}
+.cell{height:100%;padding:6px 8px;border-radius:10px;background:hsl(var(--h) 70% 55%/.2);border-left:3px solid hsl(var(--h) 70% 55%)}
+.cell small{display:block;color:var(--mut)}
+.brk td{height:24px;text-align:center;color:var(--mut);background:none;font-size:12px}
+.tools{display:flex;gap:12px;flex-wrap:wrap;align-items:end;justify-content:center;margin-bottom:6px}
+.tools label{margin:0;min-width:170px}
+.warn{border-left:4px solid var(--bad);padding:10px 14px;background:#fff;border-radius:10px;margin:8px 0;box-shadow:var(--glass-sh)}
+#load{display:none;margin:30px auto;max-width:420px;text-align:center}
+#load .bar i{animation:ld 1s linear infinite;width:40%}
+@keyframes ld{from{margin-left:-40%}to{margin-left:100%}}
+#toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,120px);background:#5b2de0;color:#fff;padding:10px 20px;border-radius:999px;box-shadow:0 10px 28px rgba(109,60,240,.35);transition:transform .4s;z-index:999}
+#toast.on{transform:translate(-50%,0)}
+
+/* Lock/Auth Styles */
+body.locked header, body.locked main{display:none!important}
+#auth{display:none;min-height:100vh;align-items:center;justify-content:center;padding:24px 18px;position:relative;z-index:100}
+body.locked #auth{display:flex!important}
+.acard{width:100%;max-width:420px;position:relative;z-index:101;background:#fff}
+.acard h1{font-size:clamp(40px,10vw,56px);text-align:center;margin:0 0 6px}
+.acard .sub{margin-bottom:18px}
+.tabs{display:flex;gap:4px;padding:4px;border-radius:999px;margin-bottom:18px;background:rgba(237,232,255,.5);border:1px solid rgba(109,60,240,.15)}
+.tabs button{flex:1;border:0;background:none;color:var(--mut);font:inherit;font-weight:600;padding:10px;border-radius:999px;cursor:pointer;transition:all .2s}
+.tabs button.on{color:#fff;background:linear-gradient(135deg,#5b2de0,#a47bff);box-shadow:0 4px 14px rgba(109,60,240,.3)}
+#aerr{min-height:20px;color:var(--bad);font-size:14px;margin:0 0 10px}
+.acard .btn{width:100%;margin-top:8px}
+.note{font-size:12px;color:var(--mut);text-align:center;margin:14px 0 0}
+.usr{display:flex;align-items:center;gap:10px;white-space:nowrap;font-size:14px;color:var(--mut)}
+.usr .btn{padding:8px 14px;font-size:13px}
+@media(max-width:800px){#uname{display:none}.hero,.grid2{grid-template-columns:1fr}.stack{height:270px}.logo{font-size:17px}}
+</style>
+</head>
+<body class="locked">
+<div class="orbs" aria-hidden="true"><i></i><i></i><i></i></div>
+<header><div class="logo">Samay</div>
+<nav id="nav"><i id="pill"></i>
+<button class="on">Get Started</button><button>Teachers</button><button>Rooms</button><button>Timings</button><button>Batches</button><button>Courses</button><button>Generate Timetable</button></nav>
+<div class="usr"><span id="uname"></span><button class="btn o" id="btn-logout">Log out</button></div></header>
+
+<section id="auth">
+<div class="card acard">
+<h1>Samay</h1><p class="sub">Log in to open your timetables, or create an account.</p>
+<div class="tabs">
+  <button type="button" id="tin" class="on">Log in</button>
+  <button type="button" id="tup">Sign up</button>
+</div>
+<form id="aform" onsubmit="event.preventDefault(); authGo();">
+  <label id="lnm" style="display:none">Your name<input id="an" autocomplete="name" placeholder="e.g. Dr. Rashmi"></label>
+  <label>Email address<input id="au" type="email" autocomplete="username" placeholder="e.g. rashmi@college.edu" required></label>
+  <label>Password<input id="ap" type="password" autocomplete="current-password" placeholder="At least 6 characters" required></label>
+  <label id="lcf" style="display:none">Confirm password<input id="ap2" type="password" autocomplete="new-password"></label>
+  <label class="chip" style="margin-bottom:12px!important"><input type="checkbox" id="sp">Show password</label>
+  <p id="aerr" role="alert"></p>
+  <button class="btn" id="abtn" type="submit">Log in</button>
+</form>
+<p class="note">Cloud sync active: Your timetable is securely synced with your Supabase account.</p>
+</div>
+</section>
+
+<main>
+<section class="sec on" id="s0">
+<div class="hero"><div><h1>Samay</h1>
+<p>Add faculty, rooms, batches and courses to generate a conflict-free timetable in one click. Less idle time, balanced workload and the best use of rooms.</p>
+<p style="display:flex;gap:12px;flex-wrap:wrap"><button class="btn" onclick="go(1)">Get started</button><button class="btn o" onclick="sample()">Load sample data</button></p></div>
+<div class="stack"><div>No clashes<small>Teachers, rooms and batches are never double-booked</small></div><div>Less idle time<small>Gaps between batch and faculty classes are minimized</small></div><div>Balanced load<small>Classes are spread evenly across the day</small></div></div></div>
+<div class="steps">
+<button class="step" onclick="go(1)"><b>Add teachers</b><span>Max classes per week and available days</span></button>
+<button class="step" onclick="go(2)"><b>Add rooms</b><span>Capacity and lab / classroom type</span></button>
+<button class="step" onclick="go(3)"><b>Set timings</b><span>Days, lecture length, lunch break</span></button>
+<button class="step" onclick="go(4)"><b>Add batches</b><span>Student strength per batch</span></button>
+<button class="step" onclick="go(5)"><b>Add courses</b><span>Teacher, batch, classes per week</span></button></div>
+</section>
+
+<section class="sec" id="s1"><h2>Add Teachers</h2><p class="sub">Specify how many classes each faculty member takes per week and on which days they are available.</p>
+<div class="grid2"><div class="card"><label>Full name<input id="tn" placeholder="e.g. Dr. Rashmi"></label>
+<label>Max classes per week<input id="tm" type="number" min="1" value="12"></label>
+<label>Available days</label><div id="td" class="chips"></div>
+<button class="btn" onclick="addT()">Add teacher</button></div>
+<div class="card"><h3>Teachers</h3><div id="tl"></div></div></div></section>
+
+<section class="sec" id="s2"><h2>Add Rooms</h2><p class="sub">Classroom capacity is the most important constraint in a timetable.</p>
+<div class="grid2"><div class="card"><label>Room name<input id="rn" placeholder="e.g. 301"></label>
+<label>Capacity (students)<input id="rc" type="number" min="1" value="60"></label>
+<label class="chip"><input id="rl" type="checkbox">Lab room</label><br><br>
+<button class="btn" onclick="addR()">Add room</button></div>
+<div class="card"><h3>Rooms</h3><div id="rl2"></div></div></div></section>
+
+<section class="sec" id="s3"><h2>Add Timings</h2><p class="sub">Set up the structure of the week – time slots are generated automatically.</p>
+<div class="grid2"><div class="card"><label>Working days<select id="cd"><option value="5">Monday – Friday</option><option value="6">Monday – Saturday</option></select></label>
+<label>First class starts at<input id="cs" type="time" value="09:00"></label>
+<label>Lecture length<select id="cl"></select></label>
+<label>Lectures per day<input id="cp" type="number" min="1" max="10" value="7" oninput="fillLunch()"></label>
+<label>Lunch break<select id="ck"></select></label>
+<label>Lunch break length<select id="cu"></select></label>
+<button class="btn g" onclick="saveCfg()">Save timings</button></div>
+<div class="card"><h3>Daily slots</h3><div id="sl"></div></div></div></section>
+
+<section class="sec" id="s4"><h2>Add Batches</h2><p class="sub">Student batches and their strength – room suitability is determined by this.</p>
+<div class="grid2"><div class="card"><label>Batch name<input id="bn" placeholder="e.g. CE-A"></label>
+<label>Number of students<input id="bs" type="number" min="1" value="50"></label>
+<button class="btn g" onclick="addB()">Add batch</button></div>
+<div class="card"><h3>Batches</h3><div id="bl"></div></div></div></section>
+
+<section class="sec" id="s5"><h2>Add Courses</h2><p class="sub">Requirements for each course: who teaches it, which batch attends, and how many times per week.</p>
+<div class="grid2"><div class="card"><label>Course name<input id="cn" placeholder="e.g. Operating Systems"></label>
+<label>Batch<select id="cb"></select></label><label>Teacher<select id="ct"></select></label>
+<label>Classes per week<input id="cw" type="number" min="1" max="10" value="3"></label>
+<label class="chip"><input id="cj" type="checkbox">Needs a lab room</label><br><br>
+<button class="btn" onclick="addC()">Add course</button></div>
+<div class="card"><h3>Courses</h3><div id="cl2"></div></div></div></section>
+
+<section class="sec" id="s6"><h2>Generate Timetable</h2><p class="sub">The optimizer tries many different schedules and selects the one with the least idle time.</p>
+<div class="tools"><button class="btn" onclick="run()">Generate timetable</button>
+<label>View by<select id="vw" onchange="show()"><option value="b">Batch</option><option value="t">Teacher</option><option value="r">Room</option></select></label></div>
+<div id="load"><p>Optimizing schedules…</p><div class="bar"><i></i></div></div>
+<div id="out"></div></section>
+</main>
+<div id="toast"></div>
+
+<script>
+const SUPABASE_URL = "https://htbartummpyjfgdnkoee.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh0YmFydHVtbXB5amZnZG5rb2VlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyMjQwNDIsImV4cCI6MjEwNzgwMDA0Mn0.pTxgph-lbO7NAatTx4kqIVpmq7Ry1Vg3OP2IHegp2g0";
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const $ = s => document.querySelector(s);
+const BLANK = () => ({teachers:[],rooms:[],batches:[],courses:[],cfg:{days:5,start:"09:00",len:60,periods:7,lunch:4,lunchLen:45}});
+let D = BLANK(), cur = 0, RES = null, CURRENT_USER = null;
+
+// Real Cloud Save in Supabase
+async function save(){
+  if(!CURRENT_USER) return;
+  try{
+    await sb.from('timetables').upsert({
+      user_id: CURRENT_USER.id,
+      data: D,
+      updated_at: new Date().toISOString()
+    });
+  }catch(e){
+    console.error("Auto-save error:", e);
+  }
+}
+
+const uid = () => Math.random().toString(36).slice(2,8);
+const esc = s => String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const hue = s => [...s].reduce((a,c)=>a*31+c.charCodeAt(0),7)%360;
+const f2 = x => String(Math.floor(x/60)).padStart(2,"0")+":"+String(x%60).padStart(2,"0");
+function tl(p){
+  const c = D.cfg, m = (+c.start.slice(0,2))*60 + (+c.start.slice(3)) + p*c.len + (c.lunch>0 && p>=c.lunch ? (c.lunchLen||45) : 0);
+  return f2(m) + "–" + f2(m + +c.len);
+}
+function toast(t){
+  const e = $("#toast");
+  e.textContent = t;
+  e.classList.add("on");
+  clearTimeout(toast.t);
+  toast.t = setTimeout(() => e.classList.remove("on"), 2200);
+}
+
+const btns = [...document.querySelectorAll("nav button")];
+btns.forEach((b,i) => b.addEventListener("click", () => go(i)));
+
+function pill(){
+  const b = btns[cur], p = $("#pill");
+  if(!b || !p) return;
+  p.style.left = b.offsetLeft + "px";
+  p.style.width = b.offsetWidth + "px";
+  btns.forEach((x,i) => x.classList.toggle("on", i == cur));
+  $("#nav").scrollTo({left: b.offsetLeft - 40, behavior: "smooth"});
+}
+
+function go(i){
+  if(i == cur) return;
+  const o = $("#s" + cur), n = $("#s" + i);
+  o.classList.remove("on", "l");
+  n.classList.remove("l");
+  if(i < cur) n.classList.add("l");
+  n.classList.add("on");
+  cur = i;
+  pill();
+  renderAll();
+  window.scrollTo({top: 0});
+}
+window.addEventListener("resize", pill);
+
+const rows = (k,f) => D[k].length ? D[k].map((x,i) => `<div class="row"><span>${f(x)}</span><button class="x" aria-label="Delete" onclick="del('${k}',${i})">✕</button></div>`).join("") : '<p class="mut">Nothing added yet.</p>';
+function del(k,i){
+  const x = D[k][i];
+  D[k].splice(i,1);
+  if(k == "teachers") D.courses = D.courses.filter(c => c.t != x.id);
+  if(k == "batches") D.courses = D.courses.filter(c => c.b != x.id);
+  save();
+  renderAll();
+}
+const nm = (k,id) => (D[k].find(x => x.id == id) || {name:"?"}).name;
+
+/* ---------- Supabase Auth Logic ---------- */
+let mode = "in";
+
+function authMode(m){
+  mode = m;
+  const up = (m === "up");
+  $("#tin").classList.toggle("on", !up);
+  $("#tup").classList.toggle("on", up);
+  $("#lnm").style.display = up ? "block" : "none";
+  $("#lcf").style.display = up ? "block" : "none";
+  $("#abtn").textContent = up ? "Create account" : "Log in";
+  $("#ap").autocomplete = up ? "new-password" : "current-password";
+  $("#aerr").textContent = "";
+}
+
+// Bind Tabs & Password Events Directly via JS
+$("#tin").addEventListener("click", () => authMode("in"));
+$("#tup").addEventListener("click", () => authMode("up"));
+$("#sp").addEventListener("change", function(){
+  const t = this.checked ? "text" : "password";
+  $("#ap").type = t;
+  const p2 = $("#ap2");
+  if(p2) p2.type = t;
+});
+$("#btn-logout").addEventListener("click", logout);
+
+async function authGo(){
+  const err = t => { $("#aerr").textContent = t; };
+  const email = $("#au").value.trim().toLowerCase();
+  const password = $("#ap").value;
+
+  if(!email.includes("@")) return err("Please enter a valid email address");
+  if(password.length < 6) return err("Password must be at least 6 characters");
+
+  if(mode === "up"){
+    const name = $("#an").value.trim();
+    if(!name) return err("Please enter your name");
+    if(password !== $("#ap2").value) return err("Passwords do not match");
+
+    $("#abtn").textContent = "Creating account...";
+    const { data, error } = await sb.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: name } }
+    });
+
+    if(error){
+      err(error.message);
+      $("#abtn").textContent = "Create account";
+    } else {
+      toast("Account created!");
+      if(data.session && data.session.user){
+        await enter(data.session.user);
+      } else {
+        err("Signup successful! Please check your email or click Log in.");
+        authMode("in");
+      }
+    }
+  } else {
+    $("#abtn").textContent = "Logging in...";
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+
+    if(error){
+      err(error.message);
+      $("#abtn").textContent = "Log in";
+    } else {
+      toast("Welcome back!");
+      await enter(data.session.user);
+    }
+  }
+}
+
+async function enter(user){
+  CURRENT_USER = user;
+  try {
+    const { data } = await sb.from('timetables').select('data').eq('user_id', user.id).maybeSingle();
+    if(data && data.data && Object.keys(data.data).length > 0){
+      D = data.data;
+    } else {
+      D = BLANK();
+    }
+  } catch(e) {
+    console.warn("Could not fetch remote timetable:", e);
+    D = BLANK();
+  }
+
+  D.cfg = Object.assign(BLANK().cfg, D.cfg || {});
+  ["teachers","rooms","batches","courses"].forEach(k => D[k] = D[k] || []);
+
+  RES = null;
+  $("#out").innerHTML = "";
+  const displayName = user.user_metadata?.full_name || user.email.split("@")[0];
+  $("#uname").textContent = displayName;
+  
+  document.querySelectorAll(".sec").forEach(e => e.classList.remove("on","l"));
+  $("#s0").classList.add("on");
+  cur = 0;
+
+  $("#au").value = $("#ap").value = $("#ap2").value = $("#an").value = "";
+  $("#aerr").textContent = "";
+  document.body.classList.remove("locked");
+  renderAll();
+  requestAnimationFrame(pill);
+  window.scrollTo({ top: 0 });
+}
+
+async function logout(){
+  try { await sb.auth.signOut(); } catch(e){}
+  CURRENT_USER = null;
+  D = BLANK();
+  RES = null;
+  authMode("in");
+  document.body.classList.add("locked");
+  window.scrollTo({ top: 0 });
+  setTimeout(() => $("#au").focus(), 50);
+}
+
+// Session check
+async function initSession(){
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if(session && session.user){
+      await enter(session.user);
+      return;
+    }
+  } catch(e) {
+    console.warn("Session check error:", e);
+  }
+  renderAll();
+}
+initSession();
+
+const LEC = [30,40,45,50,55,60,75,90,120], LUN = [15,20,30,45,60,90];
+const opts = (arr,sel,fmt) => (arr.includes(+sel) ? arr : [...arr,+sel].sort((a,b)=>a-b)).map(v => `<option value="${v}"${v==sel?" selected":""}>${fmt(v)}</option>`).join("");
+
+function fillLunch(){
+  const n = Math.max(1, Math.min(10, +$("#cp").value \vert{}\vert{} 1)), k = $("#ck"), cur = +k.value || 0;
+  k.innerHTML = '<option value="0">No lunch break</option>' + Array.from({length:n-1}, (_,i) => `<option value="${i+1}">After lecture ${i+1}</option>`).join("");
+  k.value = cur > 0 && cur < n ? cur : "0";
+}
+
+function renderAll(){
+  const c = D.cfg;
+  $("#td").innerHTML = DAYS.slice(0, c.days).map((d,i) => `<label class="chip"><input type="checkbox" value="${i}" checked>${d}</label>`).join("");
+  $("#tl").innerHTML = rows("teachers", t => `<b>${esc(t.name)}</b><small>Max ${t.max} classes/week · ${t.av.map(d=>DAYS[d]).join(", ")}</small>`);
+  $("#rl2").innerHTML = rows("rooms", r => `<b>${esc(r.name)}</b><small>Capacity ${r.cap}${r.lab?" · Lab":""}</small>`);
+  $("#bl").innerHTML = rows("batches", b => `<b>${esc(b.name)}</b><small>${b.size} students</small>`);
+  $("#cl2").innerHTML = rows("courses", x => `<b>${esc(x.name)}</b><small>${esc(nm("batches",x.b))} · ${esc(nm("teachers",x.t))} · ${x.n}/week${x.lab?" · Lab":""}</small>`);
+  $("#cb").innerHTML = D.batches.map(b => `<option value="${b.id}">${esc(b.name)}</option>`).join("");
+  $("#ct").innerHTML = D.teachers.map(t => `<option value="${t.id}">${esc(t.name)}</option>`).join("");
+  $("#cd").value = c.days;
+  $("#cs").value = c.start;
+  $("#cl").innerHTML = opts(LEC, c.len, v => v + " minutes");
+  $("#cu").innerHTML = opts(LUN, c.lunchLen || 45, v => v + " minutes");
+  $("#cp").value = c.periods;
+  fillLunch();
+  $("#ck").value = c.lunch > 0 && c.lunch < c.periods ? c.lunch : "0";
+  $("#sl").innerHTML = Array.from({length:c.periods}, (_,p) => (c.lunch > 0 && p == c.lunch ? '<div class="row mut"><span>Lunch break</span><span>'+(c.lunchLen||45)+' min</span></div>' : "") + `<div class="row"><span>Lecture ${p+1}</span><b>${tl(p)}</b></div>`).join("");
+}
+
+function addT(){
+  const name = $("#tn").value.trim(), av = [...document.querySelectorAll("#td input:checked")].map(i => +i.value);
+  if(!name || !av.length) return toast("A name and at least one available day are required");
+  D.teachers.push({id: uid(), name, max: +$("#tm").value || 12, av});
+  $("#tn").value = "";
+  save();
+  renderAll();
+  toast("Teacher added");
+}
+
+function addR(){
+  const name = $("#rn").value.trim();
+  if(!name) return toast("Please enter a room name");
+  D.rooms.push({id: uid(), name, cap: +$("#rc").value \vert{}\vert{} 1, lab: $("#rl").checked});
+  $("#rn").value = "";
+  save();
+  renderAll();
+  toast("Room added");
+}
+
+function addB(){
+  const name = $("#bn").value.trim();
+  if(!name) return toast("Please enter a batch name");
+  D.batches.push({id: uid(), name, size: +$("#bs").value || 1});
+  $("#bn").value = "";
+  save();
+  renderAll();
+  toast("Batch added");
+}
+
+function addC(){
+  const name = $("#cn").value.trim();
+  if(!name || !$("#cb").value \vert{}\vert{} !$("#ct").value) return toast("A course name, batch and teacher are required");
+  D.courses.push({id: uid(), name, b: $("#cb").value, t: $("#ct").value, n: +$("#cw").value \vert{}\vert{} 1, lab: $("#cj").checked});
+  $("#cn").value = "";
+  save();
+  renderAll();
+  toast("Course added");
+}
+
+function saveCfg(){
+  D.cfg = {days: +$("#cd").value, start: $("#cs").value || "09:00", len: +$("#cl").value \vert{}\vert{} 60, periods: Math.max(1, Math.min(10, +$("#cp").value || 7)), lunch: +$("#ck").value \vert{}\vert{} 0, lunchLen: +$("#cu").value || 45};
+  D.teachers.forEach(t => t.av = t.av.filter(d => d < D.cfg.days));
+  save();
+  renderAll();
+  toast("Timings saved");
+}
+
+function sample(){
+  D.cfg = {days: 5, start: "09:00", len: 60, periods: 6, lunch: 3, lunchLen: 45};
+  const tn = [["Ashlesha", 14], ["Rashmi", 12], ["Preeti", 12], ["Lalit", 14], ["Shivi", 12], ["Himani", 12]];
+  D.teachers = tn.map(([name, max], i) => ({id: "t" + i, name, max, av: i == 2 ? [0, 1, 2, 3] : [0, 1, 2, 3, 4]}));
+  D.rooms = [["301", 60, 0], ["302", 60, 0], ["303", 40, 0], ["304", 40, 0], ["Lab-1", 40, 1], ["Lab-2", 60, 1]].map(([name, cap, lab], i) => ({id: "r" + i, name, cap, lab: !!lab}));
+  D.batches = [["CE-A", 55], ["CE-B", 38], ["IT-A", 45]].map(([name, size], i) => ({id: "b" + i, name, size}));
+  D.courses = [];
+  D.batches.forEach((b, bi) => [["CN", 3, 0], ["OOP", 3, 0], ["DAA", 3, 0], ["HRM", 2, 0], ["ML Lab", 2, 1]].forEach(([n, w, l], ci) => D.courses.push({id: "c" + bi + ci, name: n, n: w, b: b.id, t: D.teachers[(bi + ci) % 6].id, lab: !!l})));
+  save();
+  renderAll();
+  toast("Sample data loaded – now click Generate");
+  go(6);
+}
+
+const gaps = a => a.length ? Math.max(...a) - Math.min(...a) + 1 - a.length : 0;
+
+function attempt(rand){
+  const c = D.cfg, T = new Set(), R = new Set(), B = new Set(), bd = {}, td = {}, tc = {}, cd = {}, out = [], un = [];
+  let tot = 0;
+  const tm = Object.fromEntries(D.teachers.map(t => [t.id, t])), bm = Object.fromEntries(D.batches.map(b => [b.id, b]));
+  const S = [];
+  D.courses.forEach(co => { for(let k = 0; k < co.n; k++) S.push(co); });
+  S.sort((a,b) => (tm[a.t].av.length - (a.lab ? 1 : 0) + (rand ? Math.random() * 3 : 0)) - (tm[b.t].av.length - (b.lab ? 1 : 0) + (rand ? Math.random() * 3 : 0)));
+
+  for(const co of S){
+    const t = tm[co.t], b = bm[co.b];
+    let best = null, bc = 1e9;
+    if((tc[t.id] || 0) < t.max){
+      for(const d of t.av){
+        const ba = bd[b.id + d] || [], ta = td[t.id + d] || [];
+        for(let p = 0; p < c.periods; p++){
+          if(T.has(`${t.id}|${d}|${p}`) || B.has(`${b.id}|${d}|${p}`)) continue;
+          const cost = (gaps([...ba, p]) - gaps(ba)) * 10 + (gaps([...ta, p]) - gaps(ta)) * 5 + (ba.length ? 0 : p * .6) + (cd[co.id + d] || 0) * 12 + ta.length * 2 + Math.random() * (rand ? 4 : .5);
+          for(const r of D.rooms){
+            if(r.cap < b.size || !!r.lab != !!co.lab || R.has(`${r.id}|${d}|${p}`)) continue;
+            const rc = cost + (r.cap - b.size) / r.cap * 4;
+            if(rc < bc){ bc = rc; best = {d, p, r}; }
+          }
+        }
+      }
+    }
+    if(!best){ un.push(co); continue; }
+    const {d, p, r} = best;
+    T.add(`${t.id}|${d}|${p}`);
+    B.add(`${b.id}|${d}|${p}`);
+    R.add(`${r.id}|${d}|${p}`);
+    (bd[b.id + d] = bd[b.id + d] || []).push(p);
+    (td[t.id + d] = td[t.id + d] || []).push(p);
+    tc[t.id] = (tc[t.id] || 0) + 1;
+    cd[co.id + d] = (cd[co.id + d] || 0) + 1;
+    out.push({co, t, b, r, d, p});
+    tot += bc;
+  }
+  return {out, un, cost: tot + un.length * 1000, bd, td, tc};
+}
+
+function run(){
+  if(!D.teachers.length || !D.rooms.length || !D.batches.length || !D.courses.length) return toast("First add teachers, rooms, batches and courses");
+  $("#out").innerHTML = "";
+  $("#load").style.display = "block";
+  setTimeout(() => {
+    let best = null;
+    for(let i = 0; i < 150; i++){
+      const r = attempt(i > 0);
+      if(!best || r.cost < best.cost) best = r;
+    }
+    RES = best;
+    $("#load").style.display = "none";
+    show();
+  }, 900);
+}
+
+function grid(title, items, lab){
+  const c = D.cfg;
+  let n = 0;
+  let h = `<div class="card tt"><h3>${esc(title)}</h3><div class="sc"><table><tr><th></th>${DAYS.slice(0, c.days).map(d => `<th>${d}</th>`).join("")}</tr>`;
+  for(let p = 0; p < c.periods; p++){
+    if(c.lunch > 0 && p == c.lunch) h += `<tr class="brk"><td colspan="${c.days + 1}">Lunch break</td></tr>`;
+    h += `<tr><th>${tl(p)}</th>`;
+    for(let d = 0; d < c.days; d++){
+      const it = items.find(x => x.d == d && x.p == p);
+      h += `<td>${it ? `<div class="cell" style="--h:${hue(it.co.id)};animation-delay:${n++ * 45}ms">${lab(it)}</div>` : ""}</td>`;
+    }
+    h += "</tr>";
+  }
+  return h + "</table></div></div>";
+}
+
+function show(){
+  if(!RES) return;
+  const {out, un, bd, td, tc} = RES, v = $("#vw").value, c = D.cfg;
+  const clash = new Set(out.flatMap(x => [`t${x.t.id}${x.d}${x.p}`, `b${x.b.id}${x.d}${x.p}`, `r${x.r.id}${x.d}${x.p}`])).size != out.length * 3;
+  const bi = Object.values(bd).reduce((a, x) => a + gaps(x), 0);
+  const ti = Object.values(td).reduce((a, x) => a + gaps(x), 0);
+  const tot = D.courses.reduce((a, x) => a + x.n, 0);
+  const util = Math.round(out.length / (D.rooms.length * c.days * c.periods) * 100);
+  
+  let h = `<div class="stats"><div class="card stat"><b>${out.length}/${tot}</b><span>classes scheduled</span></div>
+  <div class="card stat"><b style="color:var(--${clash ? "bad" : "ok"})">${clash ? "Yes" : "0"}</b><span>clashes</span></div>
+  <div class="card stat"><b>${bi}</b><span>batch idle slots</span></div><div class="card stat"><b>${ti}</b><span>teacher idle slots</span></div>
+  <div class="card stat"><b>${util}%</b><span>room utilization</span></div></div>`;
+  
+  if(un.length) h += un.map(x => `<div class="warn">Could not place a class of <b>${esc(x.name)}</b> (${esc(nm("batches", x.b))}) – please check teacher limits or room capacities.</div>`).join("");
+  h += `<div class="card"><h3>Teacher workload</h3>${D.teachers.map(t => { const l = tc[t.id] || 0; return `<div>${esc(t.name)} – ${l} /${t.max} classes<div class="bar"><i data-w="${Math.round(l / t.max * 100)}"></i></div></div>`; }).join("")}</div>`;
+  
+  if(v == "b") D.batches.forEach(b => h += grid(`${b.name} (${b.size} students)`, out.filter(x => x.b.id == b.id), x => `<b>${esc(x.co.name)}</b><small>${esc(x.t.name)} · ${esc(x.r.name)}</small>`));
+  if(v == "t") D.teachers.forEach(t => h += grid(t.name, out.filter(x => x.t.id == t.id), x => `<b>${esc(x.co.name)}</b><small>${esc(x.b.name)} · ${esc(x.r.name)}</small>`));
+  if(v == "r") D.rooms.forEach(r => h += grid(`${r.name} (cap. ${r.cap})`, out.filter(x => x.r.id == r.id), x => `<b>${esc(x.co.name)}</b><small>${esc(x.b.name)} · ${esc(x.t.name)}</small>`));
+  
+  $("#out").innerHTML = h;
+  requestAnimationFrame(() => requestAnimationFrame(() => document.querySelectorAll(".bar i[data-w]").forEach(i => i.style.width = i.dataset.w + "%")));
+}
+
+setTimeout(pill, 50);
+window.addEventListener("load", pill);
+</script>
+</body>
+</html>
